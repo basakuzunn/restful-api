@@ -38,6 +38,11 @@ video_update_args.add_argument("name", type=str, help="Name of the video is requ
 video_update_args.add_argument("views", type=int, help="Views of the video")
 video_update_args.add_argument("likes", type=int, help="Likes of the video")
 
+video_del_args = reqparse.RequestParser()
+video_del_args.add_argument("name", type=str, help="Name of the video is required")
+video_del_args.add_argument("views", type=int, help="Views of the video")
+video_del_args.add_argument("likes", type=int, help="Likes of the video")
+
 resource_fields = {
     'id' : fields.Integer,
     'name': fields.String,
@@ -83,9 +88,20 @@ class Video(Resource):
 
         return result
 
+    @marshal_with(resource_fields)
     def delete(self, video_id):
-        del videos[video_id]
-        return '',204
+        args = video_del_args.parse_args()
+        result = VideoModel.query.filter_by(id=video_id).first()
+        if result:
+            abort(204, message="Video is deleted.")
+        if not result:
+            abort(404, message="Video does not exist, cannot delete.")
+
+        video = VideoModel(id=video_id, name=args['name'], views=args['views'], likes=args['likes'])
+
+        db.session.delete(video)
+        db.session.commit()
+        return video, 204
 
 
 api.add_resource(Video,"/video/<int:video_id>")
