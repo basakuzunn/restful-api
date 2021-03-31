@@ -2,6 +2,8 @@ from flask import Flask
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 import logging
+from datetime import datetime
+
 
 
 app = Flask(__name__)
@@ -11,7 +13,7 @@ db = SQLAlchemy(app)
 
 
 logging.basicConfig(filename="std.log",
-                    format=' {%(message)s} , {%(asctime)s}' ,
+                    format=' {%(message)s} , {%(asctime)s}',
                     filemode='w')
 
 logger = logging.getLogger()
@@ -49,17 +51,40 @@ resource_fields = {
     'views':fields.Integer,
     'likes':fields.Integer
 }
+def time(filename, count):
+    now = datetime.now()
+    current_time = now.strftime("%H:%M")
+    print("Current Time =", current_time)
+
+    file = open(filename, "a")
+    line = file.write(str(count) + ',' + str(current_time)+'\n')
+    file.close()
+
+
+count_get = 0
+count_put = 0
+count_patch = 0
+count_del = 0
+
 
 class Video(Resource):
+    def __init__(self):
+        self.count_get = 0
     @marshal_with(resource_fields)
     def get(self,video_id):
+        time("getfile.txt",self.count_get)
+        self.count_get +=1
         result = VideoModel.query.filter_by(id=video_id).first()
         if not result:
             abort(404,message="Could not find video with that id")
         return result
 
+    def __init__(self):
+        self.count_put = 0
     @marshal_with(resource_fields)
     def put(self,video_id):
+        time("putfile.txt", self.count_put)
+        self.count_put += 1
         args = video_put_args.parse_args()
         result = VideoModel.query.filter_by(id=video_id).first()
         if result:
@@ -69,8 +94,13 @@ class Video(Resource):
         db.session.commit()
         return video, 201
 
+
+    def __init__(self):
+        self.count_patch = 0
     @marshal_with(resource_fields)
     def patch(self, video_id):
+        time("patchfile.txt", self.count_patch)
+        self.count_patch += 1
         args = video_update_args.parse_args()
         result = VideoModel.query.filter_by(id=video_id).first()
         if not result:
@@ -88,8 +118,14 @@ class Video(Resource):
 
         return result
 
+
+
+    def __init__(self):
+        self.count_del = 0
     @marshal_with(resource_fields)
     def delete(self, video_id):
+        time("delfile.txt", self.count_del)
+        self.count_del += 1
         args = video_del_args.parse_args()
         result = VideoModel.query.filter_by(id=video_id).first()
         if result:
@@ -103,8 +139,6 @@ class Video(Resource):
         db.session.commit()
         return video, 204
 
-
 api.add_resource(Video,"/video/<int:video_id>")
-
 if __name__ == "__main__":
     app.run(debug=True)
