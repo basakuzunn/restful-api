@@ -1,6 +1,6 @@
 # restful-api
 basic restful-api server 
-
+##kafka
 Server içerisine SQLALCHEMY ile bir database kurulmuştur.
 Database içerisinde 3 adet veri vardır.(video/1, video/2, video/3)
 main.py çalıştırıldıktan sonra test.py üzerinden 4 endpointe istek atılarak çalıştırılır.
